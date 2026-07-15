@@ -378,16 +378,75 @@
 
   <script type="application/json" id="seed-data">
   {
-    "materias": [],
-    "productos": [],
-    "pedidos": [],
-    "recetas": {},
-    "ordenes": [],
-    "movimientos": [],
-    "usuarios": [],
-    "proveedores": [],
-    "ordenesCompra": [],
-    "lotes": [],
+    "__demoSeedVersion": 1,
+    "materias": [
+      { "id": "MP-001", "nombre": "Resina acrilica base agua", "categoria": "Resina", "unidad": "kg", "stock": 420, "minimo": 180, "costo": 9800, "proveedor": "Quimicos Andinos" },
+      { "id": "MP-002", "nombre": "Pigmento blanco titanio", "categoria": "Pigmento", "unidad": "kg", "stock": 95, "minimo": 120, "costo": 18500, "proveedor": "ColorMix SAS" },
+      { "id": "MP-003", "nombre": "Solvente industrial", "categoria": "Solvente", "unidad": "L", "stock": 260, "minimo": 100, "costo": 7200, "proveedor": "Solventes del Valle" },
+      { "id": "MP-004", "nombre": "Aditivo antiespumante", "categoria": "Aditivo", "unidad": "kg", "stock": 38, "minimo": 35, "costo": 24500, "proveedor": "Quimicos Andinos" },
+      { "id": "MP-005", "nombre": "Envase plastico 1 galon", "categoria": "Envase", "unidad": "u", "stock": 510, "minimo": 300, "costo": 2100, "proveedor": "Envaplast" },
+      { "id": "MP-006", "nombre": "Etiqueta linea premium", "categoria": "Etiqueta", "unidad": "u", "stock": 180, "minimo": 250, "costo": 420, "proveedor": "Impresos Norte" }
+    ],
+    "productos": [
+      { "id": "PT-001", "nombre": "Vinilo blanco interior", "presentacion": "1 gal", "color": "#f3f4f6", "stock": 34, "minimo": 25, "precio": 68000 },
+      { "id": "PT-002", "nombre": "Esmalte azul industrial", "presentacion": "1 gal", "color": "#2563eb", "stock": 6, "minimo": 18, "precio": 84000 },
+      { "id": "PT-003", "nombre": "Sellador acrilico transparente", "presentacion": "1 L", "color": "#dbeafe", "stock": 58, "minimo": 35, "precio": 32000 }
+    ],
+    "pedidos": [
+      { "id": "PED-2026-0001", "fecha": "15/07/2026", "cliente": "Ferreteria La 80", "vendedor": "Carlos Ruiz", "producto": "PT-001", "productoNombre": "Vinilo blanco interior", "presentacion": "1 gal", "cantidad": 12, "prioridad": "Normal", "despachoInmediato": 12, "faltanteProduccion": 0, "estado": "Despacho inmediato", "op": null, "lote": null, "faltantesMP": [], "total": 816000 },
+      { "id": "PED-2026-0002", "fecha": "15/07/2026", "cliente": "Constructora Norte", "vendedor": "Laura Mejia", "producto": "PT-002", "productoNombre": "Esmalte azul industrial", "presentacion": "1 gal", "cantidad": 18, "prioridad": "Alta", "despachoInmediato": 6, "faltanteProduccion": 12, "estado": "A produccion", "op": "OP-2026-041", "lote": "LT-2026-001", "faltantesMP": [], "total": 1512000 },
+      { "id": "PED-2026-0003", "fecha": "15/07/2026", "cliente": "Distribuciones Caribe", "vendedor": "Andres Mora", "producto": "PT-001", "productoNombre": "Vinilo blanco interior", "presentacion": "1 gal", "cantidad": 260, "prioridad": "Urgente", "despachoInmediato": 34, "faltanteProduccion": 226, "estado": "Requiere compra MP", "op": null, "lote": null, "faltantesMP": [{ "mp": "MP-002", "nombre": "Pigmento blanco titanio", "unidad": "kg", "proveedor": "ColorMix SAS", "costo": 18500, "porUnidad": 0.55, "total": 124.3, "stock": 95, "faltante": 29.3, "ok": false }, { "mp": "MP-006", "nombre": "Etiqueta linea premium", "unidad": "u", "proveedor": "Impresos Norte", "costo": 420, "porUnidad": 1, "total": 226, "stock": 180, "faltante": 46, "ok": false }], "total": 17680000 }
+    ],
+    "recetas": {
+      "PT-001": [
+        { "mp": "MP-001", "cant": 2.4 },
+        { "mp": "MP-002", "cant": 0.55 },
+        { "mp": "MP-004", "cant": 0.08 },
+        { "mp": "MP-005", "cant": 1 },
+        { "mp": "MP-006", "cant": 1 }
+      ],
+      "PT-002": [
+        { "mp": "MP-001", "cant": 2.1 },
+        { "mp": "MP-003", "cant": 0.7 },
+        { "mp": "MP-004", "cant": 0.06 },
+        { "mp": "MP-005", "cant": 1 }
+      ],
+      "PT-003": [
+        { "mp": "MP-001", "cant": 0.9 },
+        { "mp": "MP-003", "cant": 0.35 },
+        { "mp": "MP-006", "cant": 1 }
+      ]
+    },
+    "ordenes": [
+      { "id": "OP-2026-041", "producto": "PT-002", "cantidad": 12, "cantidadPlan": 12, "mermaPct": 0, "lote": "LT-2026-001", "estado": "En proceso", "fecha": "2026-07-15", "operario": "Planificacion por pedido", "pedido": "PED-2026-0002" },
+      { "id": "OP-2026-040", "producto": "PT-001", "cantidad": 40, "cantidadPlan": 42, "mermaPct": 4, "lote": "LT-2026-000", "estado": "Completada", "fecha": "2026-07-14", "operario": "Martha Rios" }
+    ],
+    "movimientos": [
+      { "fecha": "15/07/2026, 10:24 a. m.", "tipo": "Salida", "item": "PT-001", "cant": -12, "doc": "PED-2026-0001", "user": "Carlos Ruiz" },
+      { "fecha": "15/07/2026, 10:41 a. m.", "tipo": "Salida", "item": "PT-002", "cant": -6, "doc": "PED-2026-0002", "user": "Laura Mejia" },
+      { "fecha": "15/07/2026, 10:41 a. m.", "tipo": "Salida", "item": "MP-001", "cant": -25.2, "doc": "OP-2026-041", "user": "pedido", "lote": "LT-2026-001" },
+      { "fecha": "15/07/2026, 10:41 a. m.", "tipo": "Salida", "item": "MP-003", "cant": -8.4, "doc": "OP-2026-041", "user": "pedido", "lote": "LT-2026-001" },
+      { "fecha": "14/07/2026, 4:12 p. m.", "tipo": "Produccion", "item": "PT-001", "cant": 40, "doc": "OP-2026-040", "user": "Martha Rios", "lote": "LT-2026-000" },
+      { "fecha": "13/07/2026, 9:08 a. m.", "tipo": "Entrada", "item": "MP-005", "cant": 300, "doc": "OC-2026001", "user": "gerente" }
+    ],
+    "usuarios": [
+      { "id": "USR-001", "nombre": "Gerente de Produccion", "rol": "Gerente", "estado": "Activo" },
+      { "id": "USR-002", "nombre": "Carlos Ruiz", "rol": "Vendedor", "estado": "Activo" }
+    ],
+    "proveedores": [
+      { "id": "PV-001", "nombre": "Quimicos Andinos", "contacto": "Sofia Perez", "telefono": "300 456 8890", "email": "compras@quimicosandinos.co" },
+      { "id": "PV-002", "nombre": "ColorMix SAS", "contacto": "Jorge Marin", "telefono": "301 222 6541", "email": "ventas@colormix.co" },
+      { "id": "PV-003", "nombre": "Envaplast", "contacto": "Paula Gomez", "telefono": "310 445 0912", "email": "pedidos@envaplast.co" },
+      { "id": "PV-004", "nombre": "Impresos Norte", "contacto": "Diana Leon", "telefono": "315 789 4400", "email": "servicio@impresosnorte.co" }
+    ],
+    "ordenesCompra": [
+      { "id": "OC-2026002", "fecha": "15/07/2026", "proveedor": "PV-002", "proveedorNombre": "ColorMix SAS", "detalle": [{ "mp": "MP-002", "nombre": "Pigmento blanco titanio", "cant": 160, "costoUnit": 18500, "subtotal": 2960000, "unidad": "kg" }], "total": 2960000, "estado": "Emitida" },
+      { "id": "OC-2026001", "fecha": "13/07/2026", "proveedor": "PV-003", "proveedorNombre": "Envaplast", "detalle": [{ "mp": "MP-005", "nombre": "Envase plastico 1 galon", "cant": 300, "costoUnit": 2100, "subtotal": 630000, "unidad": "u" }], "total": 630000, "estado": "Recibida" }
+    ],
+    "lotes": [
+      { "id": "LT-2026-001", "op": "OP-2026-041", "producto": "PT-002", "cantidad": 12, "mermaPct": 0, "fecha": "15/07/2026" },
+      { "id": "LT-2026-000", "op": "OP-2026-040", "producto": "PT-001", "cantidad": 40, "mermaPct": 4, "fecha": "14/07/2026" }
+    ],
     "categorias": [
       { "id": "C-01", "nombre": "Pigmento", "aplica": "MP", "color": "#B5572D" },
       { "id": "C-02", "nombre": "Resina",   "aplica": "MP", "color": "#3266A1" },

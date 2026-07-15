@@ -16,6 +16,13 @@ const REMOTE_STATUS = {
   offline: { label: 'Sin conexión', tone: 'warn' }
 };
 
+function mergeSeedState(seed, incoming) {
+  if (!incoming || typeof incoming !== 'object') return seed;
+  const hasCoreData = (incoming.materias || []).length > 0 || (incoming.productos || []).length > 0;
+  if (!hasCoreData && seed.__demoSeedVersion) return seed;
+  return { ...seed, ...incoming };
+}
+
 function App() {
   const STORAGE_KEY = 'pinturastock-data-v1';
   const [data, setData] = useStateApp(() => {
@@ -24,7 +31,7 @@ function App() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === 'object') return { ...seed, ...parsed };
+        if (parsed && typeof parsed === 'object') return mergeSeedState(seed, parsed);
       }
     } catch (e) {}
     return seed;
@@ -47,7 +54,7 @@ function App() {
       .then((remote) => {
         if (!alive) return;
         if (remote && typeof remote === 'object') {
-          setData({ ...window.SH.loadSeed(), ...remote });
+          setData(mergeSeedState(window.SH.loadSeed(), remote));
         } else {
           sync.saveRemoteState(data).catch(() => {});
         }
