@@ -20,14 +20,33 @@ function mergeSeedState(seed, incoming) {
   if (!incoming || typeof incoming !== 'object') return seed;
   const hasCoreData = (incoming.materias || []).length > 0 || (incoming.productos || []).length > 0;
   if (!hasCoreData && seed.__demoSeedVersion) return seed;
-  return { ...seed, ...incoming };
+  const merged = { ...seed, ...incoming };
+  const cleanupVersion = seed.__userCleanupVersion || 0;
+  if ((incoming.__userCleanupVersion || 0) < cleanupVersion) {
+    const gerente = (merged.usuarios || []).find((u) =>
+      String(u.email || '').toLowerCase() === 'josealexiscm@ufps.edu.co' ||
+      String(u.rol || '').toLowerCase().includes('gerente') ||
+      String(u.nombre || '').toLowerCase().includes('gerente')
+    );
+    merged.usuarios = [{
+      id: gerente?.id || 'USR-GERENTE',
+      nombre: 'Gerente',
+      email: 'josealexiscm@ufps.edu.co',
+      rol: 'gerente',
+      ult: gerente?.ult || 'nunca',
+      activo: true
+    }];
+    merged.__userCleanupVersion = cleanupVersion;
+  }
+  return merged;
 }
 
 const ROLE_PAGES = {
   gerente: '*',
   produccion: ['dashboard', 'materias', 'productos', 'pedidos', 'produccion', 'movimientos', 'reportes'],
   vendedor: ['dashboard', 'productos', 'pedidos', 'movimientos'],
-  compras: ['dashboard', 'materias', 'proveedores', 'pedidos', 'compras', 'movimientos', 'reportes']
+  compras: ['dashboard', 'materias', 'proveedores', 'pedidos', 'compras', 'movimientos', 'reportes'],
+  sin_acceso: []
 };
 
 function normalizeRole(user) {
@@ -37,12 +56,13 @@ function normalizeRole(user) {
   if (raw.includes('produccion')) return 'produccion';
   if (raw.includes('vendedor')) return 'vendedor';
   if (raw.includes('compra')) return 'compras';
+  if (raw.includes('sin_acceso')) return 'sin_acceso';
   return raw || 'vendedor';
 }
 
 function canViewPage(user, page) {
   const role = normalizeRole(user);
-  const allowed = ROLE_PAGES[role] || ROLE_PAGES.vendedor;
+  const allowed = ROLE_PAGES[role] || [];
   return allowed === '*' || allowed.includes(page);
 }
 

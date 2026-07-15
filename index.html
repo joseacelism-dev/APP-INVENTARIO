@@ -379,6 +379,7 @@
   <script type="application/json" id="seed-data">
   {
     "__demoSeedVersion": 2,
+    "__userCleanupVersion": 1,
     "materias": [
       { "id": "MP-001", "nombre": "Resina acrilica base agua", "categoria": "Resina", "unidad": "kg", "stock": 420, "minimo": 180, "costo": 9800, "proveedor": "Quimicos Andinos" },
       { "id": "MP-002", "nombre": "Pigmento blanco titanio", "categoria": "Pigmento", "unidad": "kg", "stock": 95, "minimo": 120, "costo": 18500, "proveedor": "ColorMix SAS" },
@@ -430,8 +431,7 @@
       { "fecha": "13/07/2026, 9:08 a. m.", "tipo": "Entrada", "item": "MP-005", "cant": 300, "doc": "OC-2026001", "user": "gerente" }
     ],
     "usuarios": [
-      { "id": "USR-001", "nombre": "Gerente de Produccion", "rol": "Gerente", "estado": "Activo" },
-      { "id": "USR-002", "nombre": "Carlos Ruiz", "rol": "Vendedor", "estado": "Activo" }
+      { "id": "USR-GERENTE", "nombre": "Gerente", "email": "josealexiscm@ufps.edu.co", "rol": "gerente", "ult": "nunca", "activo": true }
     ],
     "proveedores": [
       { "id": "PV-001", "nombre": "Quimicos Andinos", "contacto": "Sofia Perez", "telefono": "300 456 8890", "email": "compras@quimicosandinos.co" },

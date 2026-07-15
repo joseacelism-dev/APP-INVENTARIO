@@ -70,7 +70,8 @@ function profileFromSession(session) {
   const user = session?.user || {};
   const meta = user.user_metadata || {};
   const dbProfile = session?.profile || {};
-  const role = dbProfile.rol || dbProfile.role || meta.role || meta.rol || 'vendedor';
+  const hasDbProfile = Boolean(dbProfile.id || dbProfile.email || dbProfile.rol || dbProfile.role);
+  const role = dbProfile.rol || dbProfile.role || meta.role || meta.rol || (isSupabaseConfigured() ? 'sin_acceso' : 'vendedor');
   const nombre = dbProfile.nombre || dbProfile.display_name || meta.nombre || meta.name || user.email || 'Usuario';
   return {
     id: user.id,
@@ -79,6 +80,7 @@ function profileFromSession(session) {
     nombre,
     rol: role,
     role,
+    activo: hasDbProfile ? dbProfile.activo !== false : !isSupabaseConfigured(),
     initials: nombre.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase() || 'US',
     session
   };
