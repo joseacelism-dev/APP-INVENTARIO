@@ -53,7 +53,7 @@ function supabaseHeaders(extra = {}) {
 async function fetchUserProfile(session) {
   if (!session?.access_token || !session?.user?.id || !isSupabaseConfigured()) return null;
   const { url, key } = getSupabaseConfig();
-  const endpoint = `${url}/rest/v1/profiles?id=eq.${encodeURIComponent(session.user.id)}&select=id,email,nombre,display_name,rol,role,activo`;
+  const endpoint = `${url}/rest/v1/profiles?id=eq.${encodeURIComponent(session.user.id)}&select=*`;
   const res = await fetch(endpoint, {
     headers: {
       apikey: key,
