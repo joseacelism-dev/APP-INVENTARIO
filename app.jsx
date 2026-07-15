@@ -18,7 +18,6 @@ const REMOTE_STATUS = {
 
 function mergeSeedState(seed, incoming) {
   if (!incoming || typeof incoming !== 'object') return seed;
-  if (incoming.__demoSeedVersion && seed.__demoSeedVersion && incoming.__demoSeedVersion < seed.__demoSeedVersion) return seed;
   const hasCoreData = (incoming.materias || []).length > 0 || (incoming.productos || []).length > 0;
   if (!hasCoreData && seed.__demoSeedVersion) return seed;
   return { ...seed, ...incoming };
