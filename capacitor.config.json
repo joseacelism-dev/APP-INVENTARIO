@@ -1,0 +1,10 @@
+{
+  "appId": "com.mendozapinturas.pinturastock",
+  "appName": "PinturaStock",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "android": {
+    "backgroundColor": "#dde4ee",
+    "allowMixedContent": false
+  }
+}

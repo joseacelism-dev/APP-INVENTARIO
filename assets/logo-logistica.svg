@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="PinturaStock inventario y logistica">
+  <defs>
+    <linearGradient id="bg" x1="42" y1="26" x2="214" y2="230" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1F8FA8"/>
+      <stop offset="1" stop-color="#2D6CB5"/>
+    </linearGradient>
+    <linearGradient id="box" x1="74" y1="72" x2="178" y2="185" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F6C85F"/>
+      <stop offset="1" stop-color="#D9952F"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+  <path d="M50 162h36M42 128h32M58 94h28" fill="none" stroke="#EAF7FB" stroke-width="14" stroke-linecap="round" opacity=".92"/>
+  <path d="M89 83 137 58l48 25v79l-48 28-48-28Z" fill="url(#box)"/>
+  <path d="m89 83 48 27 48-27M137 110v80" fill="none" stroke="#8A5A1F" stroke-width="10" stroke-linejoin="round" opacity=".34"/>
+  <path d="M84 84 137 56l53 28v82l-53 31-53-31Z" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round"/>
+  <path d="m171 150 16 16 35-40" fill="none" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="63" cy="196" r="8" fill="#FFFFFF" opacity=".9"/>
+  <circle cx="95" cy="196" r="8" fill="#FFFFFF" opacity=".9"/>
+  <path d="M63 196h68" fill="none" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" opacity=".9"/>
+</svg>

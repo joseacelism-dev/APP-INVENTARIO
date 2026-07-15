@@ -1,0 +1,53 @@
+{
+  "name": "pinturastock-desktop",
+  "version": "1.0.0",
+  "description": "Aplicacion de escritorio para inventario de pinturas.",
+  "main": "main.js",
+  "author": "Mendoza Pinturas SAS",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "build:web": "node scripts/build-web.js",
+    "dist": "electron-builder --win nsis",
+    "dist:portable": "electron-builder --win portable",
+    "android:prepare": "npm run build:web && node scripts/prepare-android.js",
+    "android:sync": "npm run android:prepare && cap sync android",
+    "android:open": "npm run android:sync && cap open android"
+  },
+  "build": {
+    "appId": "com.mendozapinturas.pinturastock",
+    "productName": "PinturaStock",
+    "icon": "build/icon.ico",
+    "artifactName": "${productName} Setup ${version}.${ext}",
+    "files": [
+      "**/*",
+      "!node_modules/.cache/**",
+      "!dist/**"
+    ],
+    "win": {
+      "signExecutable": false,
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PinturaStock"
+    }
+  },
+  "devDependencies": {
+    "@babel/standalone": "^7.29.0",
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "electron": "latest",
+    "electron-builder": "latest",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}
