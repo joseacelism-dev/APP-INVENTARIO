@@ -47,12 +47,16 @@ function Compras({ data, setData, toast }) {
       return { mp, nombre: m?.nombre, cant: +x.cant, costoUnit: +x.costo, subtotal: +x.cant * +x.costo, unidad: m?.unidad };
     });
     const total = detalle.reduce((a, d) => a + d.subtotal, 0);
+    const fechaHora = new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' });
     const oc = {
       id,
       fecha: new Date().toLocaleDateString('es-CO'),
+      fechaHora,
       proveedor: selProv,
       proveedorNombre: prov?.nombre || 'Sin proveedor',
-      detalle, total, estado: 'Emitida'
+      detalle, total, estado: 'Emitida',
+      origen: 'Manual',
+      procesoFechas: { compra: fechaHora }
     };
     setData((d) => ({ ...d, ordenesCompra: [oc, ...(d.ordenesCompra || [])] }));
     window.UT.logAuditoria(setData, 'Creó orden de compra', `${id} · ${prov?.nombre} · ${formatCurrency(total)}`);
@@ -72,7 +76,7 @@ function Compras({ data, setData, toast }) {
         materias = materias.map((m) => m.id === det.mp ? { ...m, stock: m.stock + det.cant } : m);
         movs.push({ fecha, tipo: 'Entrada', item: det.mp, cant: det.cant, doc: oc.id, user: 'gerente' });
       });
-      const ordenesCompra = d.ordenesCompra.map((x) => x.id === oc.id ? { ...x, estado: 'Recibida' } : x);
+      const ordenesCompra = d.ordenesCompra.map((x) => x.id === oc.id ? { ...x, estado: 'Recibida', fechaRecibida: fecha, procesoFechas: { ...(x.procesoFechas || {}), recibida: fecha } } : x);
       return { ...d, materias, ordenesCompra, movimientos: [...movs, ...d.movimientos] };
     });
     window.UT.logAuditoria(setData, 'Recibió OC', `${oc.id} · ${oc.detalle.length} ítems`);
@@ -151,7 +155,7 @@ function Compras({ data, setData, toast }) {
                 {ocList.map((o) => (
                   <tr key={o.id}>
                     <td className="num" style={{ fontWeight: 500 }}>{o.id}</td>
-                    <td className="muted num">{o.fecha}</td>
+                    <td className="muted num">{o.fechaHora || o.fecha}</td>
                     <td>{o.proveedorNombre}</td>
                     <td className="num" style={{ textAlign: 'right' }}>{o.detalle.length}</td>
                     <td className="num" style={{ textAlign: 'right', fontWeight: 500 }}>{formatCurrency(o.total)}</td>
@@ -236,7 +240,7 @@ function DetalleOCModal({ oc, onClose }) {
     <Modal title={"OC " + oc.id} icon="materia" onClose={onClose}
       footer={<button className="btn accent" onClick={onClose}>Cerrar</button>}>
       <div className="grid-2" style={{ marginBottom: 14 }}>
-        <div className="field"><label>Fecha</label><div>{oc.fecha}</div></div>
+        <div className="field"><label>Fecha</label><div>{oc.fechaHora || oc.fecha}</div></div>
         <div className="field"><label>Proveedor</label><div>{oc.proveedorNombre}</div></div>
         <div className="field"><label>Estado</label><div><span className={"pill " + (oc.estado === 'Recibida' ? 'good' : 'warn')}><span className="dot"></span>{oc.estado}</span></div></div>
         <div className="field"><label>Total</label><div className="num" style={{ fontWeight: 600 }}>{formatCurrency(oc.total)}</div></div>

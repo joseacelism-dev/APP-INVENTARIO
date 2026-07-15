@@ -59,7 +59,7 @@ function Pedidos({ data, setData, toast, goTo }) {
     total: pedidos.length,
     despacho: pedidos.filter((p) => p.estado === 'Despacho inmediato').length,
     produccion: pedidos.filter((p) => p.estado.includes('produccion') || p.estado.includes('produccion')).length,
-    compra: pedidos.filter((p) => p.estado.includes('compra MP')).length
+    compra: pedidos.filter((p) => p.estado.includes('compra MP') || p.estado.includes('OC')).length
   }), [pedidos]);
 
   const filtrados = useMemoPE(() => {
@@ -92,9 +92,18 @@ function Pedidos({ data, setData, toast, goTo }) {
       const movs = [];
       const ordenes = [...d.ordenes];
       const lotes = [...(d.lotes || [])];
+      const ordenesCompra = [...(d.ordenesCompra || [])];
+      const baseOcCount = ordenesCompra.length;
+      const ocIds = [];
+      const procesoFechas = {
+        pedido: fechaHora,
+        despacho: a.despacho > 0 ? fechaHora : null,
+        produccion: opId ? fechaHora : null,
+        compra: a.faltantesMP.length > 0 ? fechaHora : null
+      };
 
       if (a.despacho > 0) {
-        movs.push({ fecha: fechaHora, tipo: 'Salida', item: a.producto.id, cant: -a.despacho, doc: pedidoId, user: form.vendedor });
+        movs.push({ fecha: fechaHora, tipo: 'Salida', item: a.producto.id, cant: -a.despacho, doc: pedidoId, user: form.vendedor, proceso: 'Despacho pedido' });
       }
 
       if (opId) {
@@ -103,7 +112,7 @@ function Pedidos({ data, setData, toast, goTo }) {
           return req ? { ...m, stock: m.stock - req.total } : m;
         });
         a.requerimientos.forEach((r) => {
-          movs.push({ fecha: fechaHora, tipo: 'Salida', item: r.mp, cant: -r.total, doc: opId, user: 'pedido', lote: loteId });
+          movs.push({ fecha: fechaHora, tipo: 'Salida', item: r.mp, cant: -r.total, doc: opId, user: 'pedido', lote: loteId, proceso: 'Consumo OP por pedido' });
         });
         ordenes.unshift({
           id: opId,
@@ -114,15 +123,58 @@ function Pedidos({ data, setData, toast, goTo }) {
           lote: loteId,
           estado: 'En proceso',
           fecha: new Date().toISOString().slice(0, 10),
+          fechaHora,
           operario: 'Planificacion por pedido',
-          pedido: pedidoId
+          pedido: pedidoId,
+          procesoFechas
         });
         lotes.unshift({ id: loteId, op: opId, producto: a.producto.id, cantidad: a.faltanteProduccion, mermaPct: 0, fecha });
       }
 
+      if (a.faltantesMP.length > 0) {
+        const grupos = {};
+        a.faltantesMP.forEach((r) => {
+          const proveedorNombre = r.proveedor || 'Sin proveedor';
+          if (!grupos[proveedorNombre]) grupos[proveedorNombre] = [];
+          grupos[proveedorNombre].push(r);
+        });
+        Object.entries(grupos).forEach(([proveedorNombre, itemsGrupo], idx) => {
+          const prov = (d.proveedores || []).find((p) => p.nombre === proveedorNombre || p.id === proveedorNombre);
+          const id = 'OC-' + String(2026000 + baseOcCount + idx + 1);
+          const detalle = itemsGrupo.map((r) => ({
+            mp: r.mp,
+            nombre: r.nombre,
+            cant: +r.faltante.toFixed(2),
+            costoUnit: r.costo,
+            subtotal: +r.faltante.toFixed(2) * r.costo,
+            unidad: r.unidad,
+            pedido: pedidoId
+          }));
+          const total = detalle.reduce((acc, det) => acc + det.subtotal, 0);
+          ocIds.push(id);
+          ordenesCompra.unshift({
+            id,
+            fecha,
+            fechaHora,
+            proveedor: prov?.id || proveedorNombre,
+            proveedorNombre,
+            detalle,
+            total,
+            estado: 'Emitida',
+            origen: 'Pedido vendedor',
+            pedido: pedidoId,
+            procesoFechas: { pedido: fechaHora, compra: fechaHora }
+          });
+        });
+      }
+
+      const estadoPedido = a.faltantesMP.length > 0
+        ? (a.despacho > 0 ? 'Parcial + OC automatica' : 'OC automatica MP')
+        : a.estado;
       const pedido = {
         id: pedidoId,
         fecha,
+        fechaHora,
         cliente: form.cliente.trim(),
         vendedor: form.vendedor.trim() || 'Vendedor',
         producto: a.producto.id,
@@ -132,11 +184,13 @@ function Pedidos({ data, setData, toast, goTo }) {
         prioridad: form.prioridad,
         despachoInmediato: a.despacho,
         faltanteProduccion: a.faltanteProduccion,
-        estado: a.estado,
+        estado: estadoPedido,
         op: opId,
         lote: loteId,
+        ocs: ocIds,
         faltantesMP: a.faltantesMP,
-        total: cant * (+a.producto.precio || 0)
+        total: cant * (+a.producto.precio || 0),
+        procesoFechas
       };
 
       return {
@@ -144,6 +198,7 @@ function Pedidos({ data, setData, toast, goTo }) {
         productos,
         materias,
         ordenes,
+        ordenesCompra,
         lotes,
         pedidos: [pedido, ...(d.pedidos || [])],
         movimientos: [...movs, ...d.movimientos]
@@ -152,14 +207,14 @@ function Pedidos({ data, setData, toast, goTo }) {
 
     window.UT.logAuditoria(setData, 'Creo pedido', `${pedidoId} - ${a.producto.nombre} x ${cant}`);
     if (opId) toast(`Pedido ${pedidoId}: se genero ${opId} automaticamente`);
-    else if (a.faltantesMP.length > 0) toast(`Pedido ${pedidoId}: falta MP, emitir orden de compra`, { icon: 'alert' });
+    else if (a.faltantesMP.length > 0) toast(`Pedido ${pedidoId}: se genero OC automatica de MP`, { icon: 'alert' });
     else toast(`Pedido ${pedidoId} listo para despacho`);
     setForm({ ...blank, producto: form.producto, vendedor: form.vendedor, cliente: '', cantidad: 1 });
   };
 
   const tonoEstado = (p) => {
     if (p.estado === 'Despacho inmediato') return 'good';
-    if (p.estado.includes('compra')) return 'warn';
+    if (p.estado.includes('compra') || p.estado.includes('OC')) return 'warn';
     if (p.estado.includes('Sin receta')) return 'bad';
     return 'info';
   };
@@ -285,7 +340,7 @@ function Pedidos({ data, setData, toast, goTo }) {
           <div className="card-body col gap-12" style={{ fontSize: 13 }}>
             <div><span className="pill good"><span className="dot"></span>Despacho</span><div className="muted mt-8">Si hay producto terminado suficiente, descuenta stock y registra salida del pedido.</div></div>
             <div><span className="pill info"><span className="dot"></span>Produccion</span><div className="muted mt-8">Si falta PT y hay materias primas, crea OP y descuenta MP de inmediato.</div></div>
-            <div><span className="pill warn"><span className="dot"></span>Compra MP</span><div className="muted mt-8">Si falta materia prima, deja el aviso para emitir una orden de compra.</div></div>
+            <div><span className="pill warn"><span className="dot"></span>Compra MP</span><div className="muted mt-8">Si falta materia prima, genera automaticamente la orden de compra por proveedor.</div></div>
           </div>
         </div>
       </div>
@@ -307,13 +362,14 @@ function Pedidos({ data, setData, toast, goTo }) {
             <tbody>
               {filtrados.map((p) => (
                 <tr key={p.id}>
-                  <td><div className="num" style={{ fontWeight: 600 }}>{p.id}</div><div className="muted" style={{ fontSize: 11 }}>{p.fecha} - {p.vendedor}</div></td>
+                  <td><div className="num" style={{ fontWeight: 600 }}>{p.id}</div><div className="muted" style={{ fontSize: 11 }}>{p.fechaHora || p.fecha} - {p.vendedor}</div></td>
                   <td>{p.cliente}<div className="muted" style={{ fontSize: 11 }}>{p.prioridad}</div></td>
                   <td>{p.productoNombre}<div className="muted" style={{ fontSize: 11 }}>{p.producto} - {p.presentacion}</div></td>
                   <td className="num" style={{ textAlign: 'right' }}>{formatNum(p.cantidad)}</td>
                   <td><span className={"pill " + tonoEstado(p)}><span className="dot"></span>{p.estado}</span></td>
                   <td>
                     {p.op ? <div><span className="num" style={{ fontWeight: 600 }}>{p.op}</span><div className="muted" style={{ fontSize: 11 }}>Lote {p.lote}</div></div>
+                      : p.ocs?.length ? <div><span className="num" style={{ fontWeight: 600 }}>{p.ocs.join(', ')}</span><div className="muted" style={{ fontSize: 11 }}>OC generada {p.procesoFechas?.compra || ''}</div></div>
                       : p.faltantesMP?.length ? <div className="muted" style={{ fontSize: 12 }}>{p.faltantesMP.length} MP por comprar</div>
                       : <span className="muted">No requiere</span>}
                   </td>
