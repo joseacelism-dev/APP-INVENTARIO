@@ -135,6 +135,14 @@ function getCurrentUser() {
   return session ? profileFromSession(session) : null;
 }
 
+async function refreshCurrentUserProfile() {
+  const session = getStoredSession();
+  if (!session) return null;
+  session.profile = await fetchUserProfile(session);
+  storeSession(session, Boolean(localStorage.getItem(PINTURASTOCK_SESSION_KEY)));
+  return profileFromSession(session);
+}
+
 async function loadRemoteState() {
   if (!isSupabaseConfigured()) return null;
   const { url } = getSupabaseConfig();
@@ -169,6 +177,7 @@ window.PS_SUPABASE = {
   signInWithPassword,
   signOut,
   getCurrentUser,
+  refreshCurrentUserProfile,
   createManagedUser,
   loadRemoteState,
   saveRemoteState

@@ -136,6 +136,17 @@ function App() {
   const { useToasts } = window.SH;
   const { push: toast, Renderer: ToastRenderer } = useToasts();
 
+  useEffectApp(() => {
+    if (!authed || !window.PS_SUPABASE?.isConfigured?.()) return;
+    let alive = true;
+    window.PS_SUPABASE.refreshCurrentUserProfile?.()
+      .then((profile) => {
+        if (alive && profile) setCurrentUser({ ...profile, role: normalizeRole(profile) });
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [authed]);
+
   // Apply theme (dark mode)
   useEffectApp(() => {
     if (tw.theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');

@@ -6,7 +6,8 @@ function Usuarios({ data, setData, toast, currentUser }) {
   const [openNew, setOpenNew] = useStateUS(false);
   const [saving, setSaving] = useStateUS(false);
   const [form, setForm] = useStateUS({ nombre: '', email: '', password: '', rol: 'vendedor' });
-  const isGerente = String(currentUser?.role || currentUser?.rol || '').toLowerCase().includes('gerente');
+  const roleText = String(currentUser?.role || currentUser?.rol || currentUser?.usuarioRol || '').toLowerCase();
+  const isGerente = roleText.includes('gerente');
 
   const roles = [
     { id: 'gerente', label: 'Gerente', desc: 'Usuario maestro con acceso total al sistema', color: 'var(--accent)', perms: ['Todos los modulos', 'Usuarios', 'Seguridad', 'Configuracion'] },
