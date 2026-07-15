@@ -117,7 +117,7 @@ function App() {
       if (typing) return;
       // G then letter shortcuts
       if (gKeyRef.current) {
-        const map = { d: 'dashboard', m: 'materias', p: 'produccion', r: 'reportes', t: 'productos', u: 'usuarios', c: 'compras', v: 'movimientos' };
+        const map = { d: 'dashboard', m: 'materias', p: 'produccion', r: 'reportes', t: 'productos', e: 'pedidos', u: 'usuarios', c: 'compras', v: 'movimientos' };
         if (map[e.key.toLowerCase()]) { goTo(map[e.key.toLowerCase()]); gKeyRef.current = false; return; }
         gKeyRef.current = false;
       }
@@ -193,6 +193,7 @@ function App() {
     { id: 'productos',  label: 'Productos terminados', icon: 'producto', badge: data.productos.length },
     { id: 'categorias', label: 'Categorías',        icon: 'box', badge: (data.categorias||[]).length },
     { id: 'proveedores',label: 'Proveedores',       icon: 'usuarios', badge: (data.proveedores||[]).length },
+    { id: 'pedidos',    label: 'Pedidos vendedores', icon: 'box', badge: (data.pedidos||[]).filter((p) => p.estado !== 'Despacho inmediato').length || null },
     { id: 'produccion', label: 'Producción',        icon: 'produccion', badge: data.ordenes.filter((o) => o.estado === 'En proceso').length || null },
     { id: 'compras',    label: 'Órdenes de compra', icon: 'arrowDn', badge: (data.ordenesCompra||[]).filter((o)=>o.estado==='Emitida').length || null },
     { id: 'movimientos',label: 'Movimientos',       icon: 'arrowR' },
@@ -210,6 +211,7 @@ function App() {
     productos: ['Inventario', 'Productos terminados'],
     categorias: ['Inventario', 'Categorías'],
     proveedores: ['Inventario', 'Proveedores'],
+    pedidos: ['Operaciones', 'Pedidos vendedores'],
     produccion: ['Operaciones', 'Producción'],
     compras: ['Operaciones', 'Órdenes de compra'],
     movimientos: ['Operaciones', 'Movimientos de inventario'],
@@ -254,7 +256,7 @@ function App() {
         ))}
 
         <div className="nav-label">Operaciones</div>
-        {nav.slice(5, 8).map((n) => (
+        {nav.slice(5, 9).map((n) => (
           <button key={n.id} className={"nav-item " + (page === n.id ? 'active' : '')} onClick={() => goTo(n.id)}>
             <Icon className="ic" name={n.icon} size={16} />
             <span>{n.label}</span>
@@ -263,7 +265,7 @@ function App() {
         ))}
 
         <div className="nav-label">Información</div>
-        {nav.slice(8, 9).map((n) => (
+        {nav.slice(9, 10).map((n) => (
           <button key={n.id} className={"nav-item " + (page === n.id ? 'active' : '')} onClick={() => goTo(n.id)}>
             <Icon className="ic" name={n.icon} size={16} />
             <span>{n.label}</span>
@@ -272,7 +274,7 @@ function App() {
         ))}
 
         <div className="nav-label">Administración</div>
-        {nav.slice(9, 12).map((n) => (
+        {nav.slice(10, 13).map((n) => (
           <button key={n.id} className={"nav-item " + (page === n.id ? 'active' : '')} onClick={() => goTo(n.id)}>
             <Icon className="ic" name={n.icon} size={16} />
             <span>{n.label}</span>
@@ -281,7 +283,7 @@ function App() {
         ))}
 
         <div className="nav-label">Documentación</div>
-        {nav.slice(12).map((n) => (
+        {nav.slice(13).map((n) => (
           <button key={n.id} className={"nav-item " + (page === n.id ? 'active' : '')} onClick={() => goTo(n.id)}>
             <Icon className="ic" name={n.icon} size={16} />
             <span>{n.label}</span>
@@ -342,6 +344,7 @@ function App() {
           {page === 'productos' && <ProductosTerminados data={data} setData={setData} toast={toast} goTo={goTo} />}
           {page === 'categorias' && <Categorias data={data} setData={setData} toast={toast} />}
           {page === 'proveedores' && <Proveedores data={data} setData={setData} toast={toast} />}
+          {page === 'pedidos' && <Pedidos data={data} setData={setData} toast={toast} goTo={goTo} />}
           {page === 'produccion' && <Produccion data={data} setData={setData} toast={toast} navParams={navParams} />}
           {page === 'compras' && <Compras data={data} setData={setData} toast={toast} />}
           {page === 'movimientos' && <Movimientos data={data} setData={setData} toast={toast} />}

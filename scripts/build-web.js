@@ -15,6 +15,7 @@ const sourceScripts = [
   'modules/dashboard.jsx',
   'modules/materias.jsx',
   'modules/productos.jsx',
+  'modules/pedidos.jsx',
   'modules/produccion.jsx',
   'modules/reportes.jsx',
   'modules/usuarios.jsx',
