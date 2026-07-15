@@ -9,6 +9,13 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "theme": "light"
 }/*EDITMODE-END*/;
 
+const REMOTE_STATUS = {
+  local: { label: 'Local', tone: '' },
+  syncing: { label: 'Sincronizando', tone: 'info' },
+  online: { label: 'Supabase', tone: 'good' },
+  offline: { label: 'Sin conexión', tone: 'warn' }
+};
+
 function App() {
   const STORAGE_KEY = 'pinturastock-data-v1';
   const [data, setData] = useStateApp(() => {
@@ -23,8 +30,53 @@ function App() {
     return seed;
   });
 
+  const remoteReadyRef = React.useRef(false);
+  const [remoteStatus, setRemoteStatus] = useStateApp('local');
+
+  useEffectApp(() => {
+    let alive = true;
+    const sync = window.PS_SUPABASE;
+    if (!sync?.isConfigured?.()) {
+      remoteReadyRef.current = true;
+      setRemoteStatus('local');
+      return () => { alive = false; };
+    }
+
+    setRemoteStatus('syncing');
+    sync.loadRemoteState()
+      .then((remote) => {
+        if (!alive) return;
+        if (remote && typeof remote === 'object') {
+          setData({ ...window.SH.loadSeed(), ...remote });
+        } else {
+          sync.saveRemoteState(data).catch(() => {});
+        }
+        setRemoteStatus('online');
+      })
+      .catch(() => {
+        if (alive) setRemoteStatus('offline');
+      })
+      .finally(() => {
+        remoteReadyRef.current = true;
+      });
+
+    return () => { alive = false; };
+  }, []);
+
   useEffectApp(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
+
+    const sync = window.PS_SUPABASE;
+    if (!remoteReadyRef.current || !sync?.isConfigured?.()) return;
+
+    const timer = setTimeout(() => {
+      setRemoteStatus('syncing');
+      sync.saveRemoteState(data)
+        .then(() => setRemoteStatus('online'))
+        .catch(() => setRemoteStatus('offline'));
+    }, 900);
+
+    return () => clearTimeout(timer);
   }, [data]);
 
   const resetData = () => {
@@ -168,6 +220,7 @@ function App() {
     diseno: ['Documentación', 'Diseño de interfaz'],
     logica: ['Documentación', 'Lógica del sistema']
   };
+  const status = REMOTE_STATUS[remoteStatus] || REMOTE_STATUS.local;
 
   return (
     <div className="app">
@@ -258,6 +311,9 @@ function App() {
             ))}
           </div>
           <div className="spacer"></div>
+          <span className={"pill " + status.tone} title="Estado de sincronización">
+            <span className="dot"></span>{status.label}
+          </span>
           <div className="search" onClick={() => setSearchOpen(true)} style={{ cursor: 'pointer' }}>
             <Icon name="search" size={14} />
             <input placeholder="Buscar producto, lote, OP…" readOnly style={{ cursor: 'pointer', pointerEvents: 'none' }} />

@@ -8,4 +8,6 @@ android/build/
 android/capacitor-cordova-android-plugins/
 android/.gradle/
 .gradle/
+.env
+.env.local
 *.log

@@ -4,10 +4,10 @@
 
 PinturaStock es una app React estatica empaquetada para web, escritorio con Electron y Android con Capacitor.
 
-- No usa backend activo.
+- Usa Supabase como almacenamiento remoto si `pinturastock_state` existe.
 - No usa variables de entorno obligatorias.
-- No se conecta a una base de datos real.
-- Guarda la informacion en `localStorage`.
+- Guarda una copia local en `localStorage`.
+- Sincroniza una copia remota JSON en Supabase.
 - La autenticacion es local/demo: `gerente / demo1234`.
 
 ## Builds
@@ -40,7 +40,14 @@ cd android
 
 ## Variables De Entorno
 
-No hay variables obligatorias en la version actual. Ver `.env.example` para las variables recomendadas si se conecta un backend real.
+Variables actuales:
+
+```text
+SUPABASE_URL
+SUPABASE_PUBLISHABLE_KEY
+```
+
+Ver `.env.example` y `SUPABASE_SETUP.md`.
 
 ## Notas De Seguridad
 

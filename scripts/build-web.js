@@ -9,6 +9,7 @@ const sourceScripts = [
   'tweaks-panel.jsx',
   'icons.jsx',
   'utils.jsx',
+  'supabase-sync.jsx',
   'modules/viz.jsx',
   'shared.jsx',
   'modules/dashboard.jsx',
@@ -37,6 +38,22 @@ for (const dir of ['assets', 'vendor']) {
   fs.cpSync(path.join(root, dir), path.join(out, dir), { recursive: true });
 }
 fs.rmSync(path.join(out, 'vendor', 'babel.min.js'), { force: true });
+
+const config = {
+  SUPABASE_URL: process.env.SUPABASE_URL || 'https://urgipxrvwjplpjbbcolk.supabase.co',
+  SUPABASE_PUBLISHABLE_KEY: process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_dGZho8NFHiuIu8uG9Kge0A_rBvaQtfg'
+};
+fs.writeFileSync(
+  path.join(out, 'config.js'),
+  `window.PINTURASTOCK_CONFIG = ${JSON.stringify(config, null, 2)};\n`,
+  'utf8'
+);
+
+fs.writeFileSync(
+  path.join(root, 'config.js'),
+  `window.PINTURASTOCK_CONFIG = ${JSON.stringify(config, null, 2)};\n`,
+  'utf8'
+);
 
 for (const file of sourceScripts) {
   const source = fs.readFileSync(path.join(root, file), 'utf8');
