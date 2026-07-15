@@ -50,11 +50,28 @@ function supabaseHeaders(extra = {}) {
   };
 }
 
+async function fetchUserProfile(session) {
+  if (!session?.access_token || !session?.user?.id || !isSupabaseConfigured()) return null;
+  const { url, key } = getSupabaseConfig();
+  const endpoint = `${url}/rest/v1/profiles?id=eq.${encodeURIComponent(session.user.id)}&select=id,email,nombre,display_name,rol,role,activo`;
+  const res = await fetch(endpoint, {
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  if (!res.ok) return null;
+  const rows = await res.json();
+  return rows?.[0] || null;
+}
+
 function profileFromSession(session) {
   const user = session?.user || {};
   const meta = user.user_metadata || {};
-  const role = meta.role || meta.rol || 'vendedor';
-  const nombre = meta.nombre || meta.name || user.email || 'Usuario';
+  const dbProfile = session?.profile || {};
+  const role = dbProfile.rol || dbProfile.role || meta.role || meta.rol || 'vendedor';
+  const nombre = dbProfile.nombre || dbProfile.display_name || meta.nombre || meta.name || user.email || 'Usuario';
   return {
     id: user.id,
     user: user.email || user.id,
@@ -78,6 +95,7 @@ async function signInWithPassword(email, password, remember = false) {
   });
   if (!res.ok) throw new Error('Credenciales no validas');
   const session = await res.json();
+  session.profile = await fetchUserProfile(session);
   storeSession(session, remember);
   return profileFromSession(session);
 }
