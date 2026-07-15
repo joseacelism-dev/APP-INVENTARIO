@@ -195,6 +195,8 @@
   /* kpi */
   .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
   .kpi { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+  .kpi { position: relative; overflow: hidden; }
+  .kpi::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, var(--accent), oklch(0.70 0.12 165), oklch(0.78 0.12 70)); opacity: .85; }
   .kpi .label { font-size: 12px; color: var(--ink-3); letter-spacing: 0.02em; text-transform: uppercase; }
   .kpi .val { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; margin-top: 6px; font-family: var(--mono); font-variant-numeric: tabular-nums;}
   .kpi .trend { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; margin-top: 8px; color: var(--ink-3);}
@@ -235,11 +237,36 @@
   .chart-bars .col .bar2 { width: 70%; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; }
   .chart-bars .col .lab { font-size: 10.5px; color: var(--ink-3); font-family: var(--mono);}
 
+  .live-feed { display: grid; gap: 10px; }
+  .feed-item { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .feed-dot { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: var(--accent-bg); color: var(--accent); }
+  .feed-title { font-weight: 600; font-size: 13px; }
+  .feed-meta { color: var(--ink-3); font-size: 11.5px; margin-top: 2px; }
+  .flow-rail { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin: 14px 0; }
+  .flow-step { min-height: 64px; border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--bg-card); display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+  .flow-step.active { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--accent), transparent 82%); }
+  .flow-step.warn { border-color: transparent; background: var(--warn-bg); color: var(--warn); }
+  .flow-step.good { border-color: transparent; background: var(--good-bg); color: var(--good); }
+  .flow-step .step-title { font-size: 12px; font-weight: 700; }
+  .flow-step .step-sub { font-size: 11px; color: var(--ink-3); }
+  .stock-meter { height: 8px; border-radius: 999px; background: var(--bg-2); overflow: hidden; border: 1px solid var(--line); }
+  .stock-meter span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--bad), var(--warn), var(--good)); }
+  .kanban { display: grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); gap: 12px; }
+  .kanban-col { border: 1px solid var(--line); border-radius: 8px; background: color-mix(in oklch, var(--bg-card), var(--bg-2) 35%); min-height: 180px; }
+  .kanban-head { padding: 10px 12px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 12px; }
+  .kanban-card { margin: 10px; padding: 10px; border-radius: 7px; background: var(--bg-card); border: 1px solid var(--line); box-shadow: var(--shadow); }
+  .kanban-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .touch-bar { display: none; position: sticky; bottom: 0; z-index: 30; background: color-mix(in oklch, var(--bg-card), transparent 4%); border-top: 1px solid var(--line); padding: 8px; gap: 8px; justify-content: space-around; backdrop-filter: blur(10px); }
+  .touch-bar button { min-height: 44px; flex: 1; justify-content: center; }
+
   /* responsive */
   @media (max-width: 700px) {
     .app { grid-template-columns: 1fr; }
     .sidebar { display: none; }
     .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .flow-rail { grid-template-columns: 1fr; }
+    .kanban { grid-template-columns: 1fr; }
+    .touch-bar { display: flex; }
   }
 
   /* utility */

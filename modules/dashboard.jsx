@@ -30,6 +30,11 @@ function Dashboard({ data, goTo }) {
   }, [data]);
 
   const recientes = data.movimientos.slice(0, 6);
+  const actividad = [
+    ...(data.pedidos || []).slice(0, 3).map((p) => ({ icon: 'box', titulo: p.id + ' - ' + p.cliente, meta: p.estado + ' - ' + (p.fechaHora || p.fecha), tone: p.estado.includes('OC') ? 'warn' : p.estado.includes('produccion') ? 'info' : 'good' })),
+    ...(data.ordenesCompra || []).slice(0, 2).map((o) => ({ icon: 'arrowDn', titulo: o.id + ' - ' + o.proveedorNombre, meta: o.estado + ' - ' + (o.fechaHora || o.fecha), tone: o.estado === 'Emitida' ? 'warn' : 'good' })),
+    ...(data.ordenes || []).slice(0, 2).map((o) => ({ icon: 'produccion', titulo: o.id, meta: o.estado + ' - ' + (o.fechaHora || o.fecha), tone: o.estado === 'En proceso' ? 'info' : 'good' }))
+  ].slice(0, 7);
 
   // Real 7-day production chart based on Producción movements
   const chart = useMemoD(() => {
@@ -151,6 +156,51 @@ function Dashboard({ data, goTo }) {
               );
             })}
             {alertas.length === 0 && <div style={{ padding: 24, textAlign: 'center', color: 'var(--ink-3)', fontSize: 13 }}>Sin alertas activas</div>}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid-12-8 mt-24">
+        <div className="card">
+          <div className="card-head">
+            <h3>Actividad en vivo</h3>
+            <span className="meta">Pedidos, compras y produccion</span>
+          </div>
+          <div className="card-body">
+            <div className="live-feed">
+              {actividad.map((a, i) => (
+                <div className="feed-item" key={i}>
+                  <div className={"feed-dot " + a.tone}><Icon name={a.icon} size={14} /></div>
+                  <div>
+                    <div className="feed-title">{a.titulo}</div>
+                    <div className="feed-meta">{a.meta}</div>
+                  </div>
+                  <span className={"pill " + a.tone}><span className="dot"></span>{a.tone}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-head">
+            <h3>Semaforo de inventario</h3>
+            <span className="meta">Productos terminados</span>
+          </div>
+          <div className="card-body col gap-12">
+            {data.productos.slice(0, 5).map((p) => {
+              const pct = Math.max(0, Math.min(100, Math.round((p.stock / Math.max(p.minimo * 2, 1)) * 100)));
+              const st = stockStatus(p.stock, p.minimo);
+              return (
+                <div key={p.id}>
+                  <div className="row" style={{ justifyContent: 'space-between', marginBottom: 6 }}>
+                    <div style={{ fontWeight: 600, fontSize: 13 }}>{p.nombre}</div>
+                    <span className={"pill " + st.tone}><span className="dot"></span>{p.stock} / {p.minimo}</span>
+                  </div>
+                  <div className="stock-meter"><span style={{ width: pct + '%' }}></span></div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

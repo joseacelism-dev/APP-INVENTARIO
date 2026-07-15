@@ -225,6 +225,13 @@ function Pedidos({ data, setData, toast, goTo, currentUser }) {
   };
 
   const estados = ['Todos', ...Array.from(new Set(pedidos.map((p) => p.estado)))];
+  const flujo = [
+    { key: 'pedido', title: 'Pedido', sub: 'Captura vendedor', active: Boolean(form.cliente || cantidad), tone: 'active' },
+    { key: 'inventario', title: 'Inventario', sub: analisis.despacho > 0 ? `${analisis.despacho} disponibles` : 'Sin despacho', active: Boolean(productoSel), tone: analisis.despacho > 0 ? 'good' : 'active' },
+    { key: 'produccion', title: 'Produccion', sub: analisis.faltanteProduccion > 0 ? `${analisis.faltanteProduccion} por fabricar` : 'No requiere', active: analisis.faltanteProduccion > 0, tone: 'active' },
+    { key: 'compras', title: 'Compra MP', sub: analisis.faltantesMP.length ? `${analisis.faltantesMP.length} faltantes` : 'MP disponible', active: analisis.faltanteProduccion > 0, tone: analisis.faltantesMP.length ? 'warn' : 'good' },
+    { key: 'despacho', title: 'Despacho', sub: analisis.faltanteProduccion === 0 ? 'Inmediato' : 'Parcial / pendiente', active: Boolean(cantidad), tone: analisis.faltanteProduccion === 0 ? 'good' : 'active' }
+  ];
 
   return (
     <>
@@ -291,6 +298,18 @@ function Pedidos({ data, setData, toast, goTo, currentUser }) {
                 <div style={{ fontWeight: 600, marginTop: 4 }}>{productoSel?.nombre || 'Selecciona un producto'}</div>
               </div>
               <span className={"pill " + analisis.tone}><span className="dot"></span>{analisis.estado}</span>
+            </div>
+
+            <div className="flow-rail">
+              {flujo.map((f) => (
+                <div key={f.key} className={"flow-step " + (f.active ? f.tone : '')}>
+                  <div className="row gap-8" style={{ alignItems: 'center' }}>
+                    <Icon name={f.key === 'pedido' ? 'box' : f.key === 'inventario' ? 'producto' : f.key === 'produccion' ? 'produccion' : f.key === 'compras' ? 'arrowDn' : 'arrowR'} size={14} />
+                    <div className="step-title">{f.title}</div>
+                  </div>
+                  <div className="step-sub">{f.sub}</div>
+                </div>
+              ))}
             </div>
 
             <div className="grid-3 mt-12">

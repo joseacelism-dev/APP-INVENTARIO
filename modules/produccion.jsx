@@ -87,10 +87,12 @@ function Produccion({ data, setData, toast, navParams }) {
       <Tabs items={[
         { value: 'producir', label: 'Calculadora de producción' },
         { value: 'inversa',  label: '¿Cuánto puedo producir?' },
+        { value: 'kanban',   label: 'Kanban OP', count: data.ordenes.length },
         { value: 'lotes',    label: 'Lotes', count: (data.lotes||[]).length }
       ]} value={tab} onChange={setTab} />
 
       {tab === 'inversa' && <CalculadoraInversa data={data} />}
+      {tab === 'kanban' && <KanbanProduccion data={data} />}
       {tab === 'lotes' && <ListadoLotes data={data} />}
       {tab === 'producir' && <>
 
@@ -441,6 +443,54 @@ function ListadoLotes({ data }) {
           </tbody>
         </table>
       )}
+    </div>
+  );
+}
+
+function KanbanProduccion({ data }) {
+  const cols = [
+    { id: 'pendiente', label: 'Pendiente', match: (o) => !o.estado || o.estado === 'Pendiente' },
+    { id: 'proceso', label: 'En proceso', match: (o) => o.estado === 'En proceso' },
+    { id: 'faltante', label: 'Falta MP', match: (o) => String(o.estado || '').includes('Falta') || String(o.estado || '').includes('compra') },
+    { id: 'completada', label: 'Completada', match: (o) => o.estado === 'Completada' }
+  ];
+  return (
+    <div className="card">
+      <div className="card-head">
+        <h3>Tablero de produccion</h3>
+        <span className="meta">Vista rapida del estado de las OP</span>
+      </div>
+      <div className="card-body">
+        <div className="kanban">
+          {cols.map((col) => {
+            const items = data.ordenes.filter(col.match);
+            return (
+              <div className="kanban-col" key={col.id}>
+                <div className="kanban-head">
+                  <span>{col.label}</span>
+                  <span className="pill"><span className="dot"></span>{items.length}</span>
+                </div>
+                {items.length === 0 && <div className="muted" style={{ padding: 12, fontSize: 12 }}>Sin ordenes</div>}
+                {items.map((o) => {
+                  const p = data.productos.find((x) => x.id === o.producto);
+                  const pct = o.estado === 'Completada' ? '100%' : o.estado === 'En proceso' ? '58%' : '22%';
+                  return (
+                    <div className="kanban-card" key={o.id}>
+                      <div className="row" style={{ justifyContent: 'space-between', gap: 8 }}>
+                        <div className="num" style={{ fontWeight: 700 }}>{o.id}</div>
+                        <span className={"pill " + (o.estado === 'Completada' ? 'good' : o.estado === 'En proceso' ? 'info' : 'warn')}><span className="dot"></span>{o.estado || 'Pendiente'}</span>
+                      </div>
+                      <div style={{ fontWeight: 600, marginTop: 8 }}>{p?.nombre || o.producto}</div>
+                      <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>Cantidad {o.cantidad} - {o.lote || 'sin lote'}</div>
+                      <div className="stock-meter" style={{ marginTop: 10 }}><span style={{ width: pct }}></span></div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

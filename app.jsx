@@ -437,6 +437,14 @@ function App() {
         </div>
       </main>
 
+      <div className="touch-bar">
+        {visibleNav(nav.filter((n) => ['dashboard', 'pedidos', 'produccion', 'compras'].includes(n.id))).map((n) => (
+          <button key={n.id} className={"btn sm " + (page === n.id ? 'primary' : '')} onClick={() => goTo(n.id)}>
+            <Icon name={n.icon} size={15} /> {n.label.split(' ')[0]}
+          </button>
+        ))}
+      </div>
+
       {ToastRenderer}
 
       {present && (
