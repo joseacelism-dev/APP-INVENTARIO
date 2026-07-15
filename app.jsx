@@ -23,6 +23,30 @@ function mergeSeedState(seed, incoming) {
   return { ...seed, ...incoming };
 }
 
+const ROLE_PAGES = {
+  admin: '*',
+  gerente: '*',
+  produccion: ['dashboard', 'materias', 'productos', 'pedidos', 'produccion', 'movimientos', 'reportes'],
+  vendedor: ['dashboard', 'productos', 'pedidos', 'movimientos'],
+  compras: ['dashboard', 'materias', 'proveedores', 'pedidos', 'compras', 'movimientos', 'reportes']
+};
+
+function normalizeRole(user) {
+  const raw = String(user?.role || user?.rol || '').toLowerCase();
+  if (raw.includes('admin')) return 'admin';
+  if (raw.includes('gerente')) return 'gerente';
+  if (raw.includes('produccion')) return 'produccion';
+  if (raw.includes('vendedor')) return 'vendedor';
+  if (raw.includes('compra')) return 'compras';
+  return raw || 'vendedor';
+}
+
+function canViewPage(user, page) {
+  const role = normalizeRole(user);
+  const allowed = ROLE_PAGES[role] || ROLE_PAGES.vendedor;
+  return allowed === '*' || allowed.includes(page);
+}
+
 function App() {
   const STORAGE_KEY = 'pinturastock-data-v1';
   const [data, setData] = useStateApp(() => {
@@ -87,6 +111,10 @@ function App() {
   }, [data]);
 
   const resetData = () => {
+    if (!['admin', 'gerente'].includes(normalizeRole(currentUser))) {
+      toast('Solo admin o gerente puede reiniciar datos', { icon: 'alert' });
+      return;
+    }
     if (confirm('¿Borrar todos los datos y volver al estado inicial?')) {
       localStorage.removeItem(STORAGE_KEY);
       setData(window.SH.loadSeed());
@@ -95,8 +123,13 @@ function App() {
   const [page, setPage] = useStateApp('dashboard');
   const [navParams, setNavParams] = useStateApp(null);
   const [loadingPage, setLoadingPage] = useStateApp(false);
-  const [authed, setAuthed] = useStateApp(() => sessionStorage.getItem('pinturastock-auth') === '1' || localStorage.getItem('pinturastock-auth') === '1');
-  const [currentUser, setCurrentUser] = useStateApp({ user: 'gerente', nombre: 'Gerente de Producción', rol: 'Gerente de Producción', initials: 'GP' });
+  const [authed, setAuthed] = useStateApp(() => {
+    const authConfigured = window.PS_SUPABASE?.isConfigured?.();
+    return authConfigured
+      ? Boolean(window.PS_SUPABASE?.getCurrentUser?.())
+      : sessionStorage.getItem('pinturastock-auth') === '1' || localStorage.getItem('pinturastock-auth') === '1';
+  });
+  const [currentUser, setCurrentUser] = useStateApp(() => window.PS_SUPABASE?.getCurrentUser?.() || { user: 'gerente', nombre: 'Gerente de Producción', rol: 'Gerente de Producción', role: 'gerente', initials: 'GP' });
 
   // Hook tweaks panel — useTweaks returns [values, setTweak]
   const [tw, setTweak] = window.useTweaks(TWEAK_DEFAULTS);
@@ -161,6 +194,10 @@ function App() {
   }, [tw.density]);
 
   const goTo = (p, params = null) => {
+    if (!canViewPage(currentUser, p)) {
+      toast('Tu rol no tiene permiso para abrir ese modulo', { icon: 'alert' });
+      return;
+    }
     setPage(p);
     setNavParams(params);
     setLoadingPage(true);
@@ -172,13 +209,15 @@ function App() {
     gerente: { user: 'gerente', nombre: 'Gerente de Producción', rol: 'Gerente de Producción', initials: 'GP' }
   };
   const handleLogin = ({ user, remember }) => {
-    setCurrentUser(userMap[user] || userMap.gerente);
+    const profile = typeof user === 'object' ? user : (userMap[user] || userMap.gerente);
+    setCurrentUser({ ...profile, role: normalizeRole(profile) });
     sessionStorage.setItem('pinturastock-auth', '1');
     if (remember) localStorage.setItem('pinturastock-auth', '1');
     else localStorage.removeItem('pinturastock-auth');
     setAuthed(true);
   };
   const handleLogout = () => {
+    window.PS_SUPABASE?.signOut?.();
     sessionStorage.setItem('pinturastock-auth', '0');
     localStorage.removeItem('pinturastock-auth');
     setAuthed(false);
@@ -230,6 +269,7 @@ function App() {
     logica: ['Documentación', 'Lógica del sistema']
   };
   const status = REMOTE_STATUS[remoteStatus] || REMOTE_STATUS.local;
+  const visibleNav = (items) => items.filter((n) => canViewPage(currentUser, n.id));
 
   return (
     <div className="app">
@@ -245,7 +285,7 @@ function App() {
         </div>
 
         <div className="nav-label">General</div>
-        {nav.slice(0, 1).map((n) => (
+        {visibleNav(nav.slice(0, 1)).map((n) => (
           <button key={n.id} className={"nav-item " + (page === n.id ? 'active' : '')} onClick={() => goTo(n.id)}>
             <Icon className="ic" name={n.icon} size={16} />
             <span>{n.label}</span>
@@ -254,7 +294,7 @@ function App() {
         ))}
 
         <div className="nav-label">Inventario</div>
-        {nav.slice(1, 5).map((n) => (
+        {visibleNav(nav.slice(1, 5)).map((n) => (
           <button key={n.id} className={"nav-item " + (page === n.id ? 'active' : '')} onClick={() => goTo(n.id)}>
             <Icon className="ic" name={n.icon} size={16} />
             <span>{n.label}</span>
@@ -263,7 +303,7 @@ function App() {
         ))}
 
         <div className="nav-label">Operaciones</div>
-        {nav.slice(5, 9).map((n) => (
+        {visibleNav(nav.slice(5, 9)).map((n) => (
           <button key={n.id} className={"nav-item " + (page === n.id ? 'active' : '')} onClick={() => goTo(n.id)}>
             <Icon className="ic" name={n.icon} size={16} />
             <span>{n.label}</span>
@@ -272,7 +312,7 @@ function App() {
         ))}
 
         <div className="nav-label">Información</div>
-        {nav.slice(9, 10).map((n) => (
+        {visibleNav(nav.slice(9, 10)).map((n) => (
           <button key={n.id} className={"nav-item " + (page === n.id ? 'active' : '')} onClick={() => goTo(n.id)}>
             <Icon className="ic" name={n.icon} size={16} />
             <span>{n.label}</span>
@@ -281,7 +321,7 @@ function App() {
         ))}
 
         <div className="nav-label">Administración</div>
-        {nav.slice(10, 13).map((n) => (
+        {visibleNav(nav.slice(10, 13)).map((n) => (
           <button key={n.id} className={"nav-item " + (page === n.id ? 'active' : '')} onClick={() => goTo(n.id)}>
             <Icon className="ic" name={n.icon} size={16} />
             <span>{n.label}</span>
@@ -290,7 +330,7 @@ function App() {
         ))}
 
         <div className="nav-label">Documentación</div>
-        {nav.slice(13).map((n) => (
+        {visibleNav(nav.slice(13)).map((n) => (
           <button key={n.id} className={"nav-item " + (page === n.id ? 'active' : '')} onClick={() => goTo(n.id)}>
             <Icon className="ic" name={n.icon} size={16} />
             <span>{n.label}</span>
@@ -346,21 +386,22 @@ function App() {
         <div className="content">
           <div className="page-anim" key={page}>
           {loadingPage ? <window.PageSkeleton /> : <>
-          {page === 'dashboard' && <Dashboard data={data} goTo={goTo} />}
-          {page === 'materias' && <MateriasPrimas data={data} setData={setData} toast={toast} />}
-          {page === 'productos' && <ProductosTerminados data={data} setData={setData} toast={toast} goTo={goTo} />}
-          {page === 'categorias' && <Categorias data={data} setData={setData} toast={toast} />}
-          {page === 'proveedores' && <Proveedores data={data} setData={setData} toast={toast} />}
-          {page === 'pedidos' && <Pedidos data={data} setData={setData} toast={toast} goTo={goTo} />}
-          {page === 'produccion' && <Produccion data={data} setData={setData} toast={toast} navParams={navParams} />}
-          {page === 'compras' && <Compras data={data} setData={setData} toast={toast} />}
-          {page === 'movimientos' && <Movimientos data={data} setData={setData} toast={toast} />}
-          {page === 'reportes' && <Reportes data={data} />}
-          {page === 'usuarios' && <Usuarios data={data} setData={setData} toast={toast} />}
-          {page === 'auditoria' && <Auditoria data={data} />}
-          {page === 'basedatos' && <BaseDatos />}
-          {page === 'diseno' && <DisenoInterfaz goTo={goTo} />}
-          {page === 'logica' && <LogicaSistema />}
+          {!canViewPage(currentUser, page) && <div className="card"><div className="card-body"><window.SH.Empty title="Sin permiso" sub="Tu rol no tiene acceso a este modulo." icon="alert" /></div></div>}
+          {canViewPage(currentUser, page) && page === 'dashboard' && <Dashboard data={data} goTo={goTo} />}
+          {canViewPage(currentUser, page) && page === 'materias' && <MateriasPrimas data={data} setData={setData} toast={toast} />}
+          {canViewPage(currentUser, page) && page === 'productos' && <ProductosTerminados data={data} setData={setData} toast={toast} goTo={goTo} />}
+          {canViewPage(currentUser, page) && page === 'categorias' && <Categorias data={data} setData={setData} toast={toast} />}
+          {canViewPage(currentUser, page) && page === 'proveedores' && <Proveedores data={data} setData={setData} toast={toast} />}
+          {canViewPage(currentUser, page) && page === 'pedidos' && <Pedidos data={data} setData={setData} toast={toast} goTo={goTo} currentUser={currentUser} />}
+          {canViewPage(currentUser, page) && page === 'produccion' && <Produccion data={data} setData={setData} toast={toast} navParams={navParams} />}
+          {canViewPage(currentUser, page) && page === 'compras' && <Compras data={data} setData={setData} toast={toast} />}
+          {canViewPage(currentUser, page) && page === 'movimientos' && <Movimientos data={data} setData={setData} toast={toast} />}
+          {canViewPage(currentUser, page) && page === 'reportes' && <Reportes data={data} />}
+          {canViewPage(currentUser, page) && page === 'usuarios' && <Usuarios data={data} setData={setData} toast={toast} />}
+          {canViewPage(currentUser, page) && page === 'auditoria' && <Auditoria data={data} />}
+          {canViewPage(currentUser, page) && page === 'basedatos' && <BaseDatos />}
+          {canViewPage(currentUser, page) && page === 'diseno' && <DisenoInterfaz goTo={goTo} />}
+          {canViewPage(currentUser, page) && page === 'logica' && <LogicaSistema />}
           </>}
           </div>
         </div>

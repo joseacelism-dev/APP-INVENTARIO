@@ -1,11 +1,11 @@
 // Modulo Pedidos - conecta ventas con inventario, produccion y compras
 const { useState: useStatePE, useMemo: useMemoPE } = React;
 
-function Pedidos({ data, setData, toast, goTo }) {
+function Pedidos({ data, setData, toast, goTo, currentUser }) {
   const { formatCurrency, formatNum, Empty, Chip } = window.SH;
   const blank = {
     cliente: '',
-    vendedor: 'Vendedor',
+    vendedor: currentUser?.nombre || 'Vendedor',
     producto: data.productos[0]?.id || '',
     cantidad: 1,
     prioridad: 'Normal'
@@ -205,7 +205,12 @@ function Pedidos({ data, setData, toast, goTo }) {
       };
     });
 
-    window.UT.logAuditoria(setData, 'Creo pedido', `${pedidoId} - ${a.producto.nombre} x ${cant}`);
+    window.UT.logAuditoria(setData, 'Creo pedido', `${pedidoId} - ${a.producto.nombre} x ${cant}`, currentUser?.user || currentUser?.email || form.vendedor, {
+      modulo: 'Pedidos',
+      entidad: pedidoId,
+      usuarioRol: currentUser?.role || currentUser?.rol,
+      fechaProceso: new Date().toISOString()
+    });
     if (opId) toast(`Pedido ${pedidoId}: se genero ${opId} automaticamente`);
     else if (a.faltantesMP.length > 0) toast(`Pedido ${pedidoId}: se genero OC automatica de MP`, { icon: 'alert' });
     else toast(`Pedido ${pedidoId} listo para despacho`);

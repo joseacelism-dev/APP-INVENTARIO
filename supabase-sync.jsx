@@ -2,6 +2,7 @@
 // Usa solo la publishable key del proyecto; no incluir service_role en frontend.
 const PINTURASTOCK_SUPABASE_TABLE = 'pinturastock_state';
 const PINTURASTOCK_SUPABASE_ROW = 'default';
+const PINTURASTOCK_SESSION_KEY = 'pinturastock-supabase-session';
 
 function getSupabaseConfig() {
   const cfg = window.PINTURASTOCK_CONFIG || {};
@@ -16,14 +17,84 @@ function isSupabaseConfigured() {
   return Boolean(cfg.url && cfg.key);
 }
 
+function getStoredSession() {
+  try {
+    const raw = sessionStorage.getItem(PINTURASTOCK_SESSION_KEY) || localStorage.getItem(PINTURASTOCK_SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function storeSession(session, remember) {
+  const raw = JSON.stringify(session);
+  sessionStorage.setItem(PINTURASTOCK_SESSION_KEY, raw);
+  if (remember) localStorage.setItem(PINTURASTOCK_SESSION_KEY, raw);
+  else localStorage.removeItem(PINTURASTOCK_SESSION_KEY);
+}
+
+function clearStoredSession() {
+  sessionStorage.removeItem(PINTURASTOCK_SESSION_KEY);
+  localStorage.removeItem(PINTURASTOCK_SESSION_KEY);
+}
+
 function supabaseHeaders(extra = {}) {
   const { key } = getSupabaseConfig();
+  const session = getStoredSession();
+  const token = session?.access_token || key;
   return {
     apikey: key,
-    Authorization: `Bearer ${key}`,
+    Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
     ...extra
   };
+}
+
+function profileFromSession(session) {
+  const user = session?.user || {};
+  const meta = user.user_metadata || {};
+  const role = meta.role || meta.rol || 'vendedor';
+  const nombre = meta.nombre || meta.name || user.email || 'Usuario';
+  return {
+    id: user.id,
+    user: user.email || user.id,
+    email: user.email,
+    nombre,
+    rol: role,
+    role,
+    initials: nombre.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase() || 'US',
+    session
+  };
+}
+
+async function signInWithPassword(email, password, remember = false) {
+  if (!isSupabaseConfigured()) throw new Error('Supabase no esta configurado');
+  const { url } = getSupabaseConfig();
+  const { key } = getSupabaseConfig();
+  const res = await fetch(`${url}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { apikey: key, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  if (!res.ok) throw new Error('Credenciales no validas');
+  const session = await res.json();
+  storeSession(session, remember);
+  return profileFromSession(session);
+}
+
+async function signOut() {
+  if (isSupabaseConfigured()) {
+    try {
+      const { url } = getSupabaseConfig();
+      await fetch(`${url}/auth/v1/logout`, { method: 'POST', headers: supabaseHeaders() });
+    } catch (e) {}
+  }
+  clearStoredSession();
+}
+
+function getCurrentUser() {
+  const session = getStoredSession();
+  return session ? profileFromSession(session) : null;
 }
 
 async function loadRemoteState() {
@@ -57,6 +128,9 @@ async function saveRemoteState(data) {
 
 window.PS_SUPABASE = {
   isConfigured: isSupabaseConfigured,
+  signInWithPassword,
+  signOut,
+  getCurrentUser,
   loadRemoteState,
   saveRemoteState
 };

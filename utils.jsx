@@ -119,13 +119,21 @@ function predecirQuiebres(materias, movimientos, dias = 30) {
 }
 
 // ── Bitácora de auditoría ────────────────────────────────────────
-function logAuditoria(setData, accion, detalle, user = 'gerente') {
+function logAuditoria(setData, accion, detalle, user = 'gerente', meta = {}) {
+  const now = new Date();
   setData((d) => ({
     ...d,
     bitacora: [{
-      fecha: new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' }),
-      ts: Date.now(),
-      accion, detalle, user
+      fecha: now.toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' }),
+      fechaISO: now.toISOString(),
+      ts: now.getTime(),
+      accion, detalle, user,
+      modulo: meta.modulo || '',
+      entidad: meta.entidad || '',
+      usuarioRol: meta.usuarioRol || '',
+      antes: meta.antes || null,
+      despues: meta.despues || null,
+      ip: meta.ip || 'frontend'
     }, ...(d.bitacora || [])].slice(0, 500) // límite anti-bloat
   }));
 }

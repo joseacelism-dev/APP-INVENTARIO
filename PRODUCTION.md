@@ -5,10 +5,12 @@
 PinturaStock es una app React estatica empaquetada para web, escritorio con Electron y Android con Capacitor.
 
 - Usa Supabase como almacenamiento remoto si `pinturastock_state` existe.
+- Soporta Supabase Auth con correo/contrasena.
+- Usa roles de aplicacion: `admin`, `gerente`, `produccion`, `vendedor`, `compras`.
 - No usa variables de entorno obligatorias.
 - Guarda una copia local en `localStorage`.
-- Sincroniza una copia remota JSON en Supabase.
-- La autenticacion es local/demo: `gerente / demo1234`.
+- Sincroniza una copia remota JSON en Supabase usando token de usuario cuando Auth esta activo.
+- La autenticacion local/demo queda solo como respaldo cuando Supabase no esta configurado.
 
 ## Builds
 
@@ -51,13 +53,14 @@ Ver `.env.example` y `SUPABASE_SETUP.md`.
 
 ## Notas De Seguridad
 
-Para produccion multiusuario real se debe agregar backend con:
+Antes de publicar con datos reales:
 
-- Autenticacion servidor-side.
-- Roles y permisos verificados en API.
-- Base de datos transaccional.
-- Backups.
-- Auditoria persistente.
+- Ejecutar `supabase-security.sql`.
+- Crear usuarios en Supabase Auth.
+- Registrar cada usuario en `public.profiles`.
+- Verificar que RLS quede activo.
+- Crear backups antes de cada despliegue.
+- Revisar `audit_log` periodicamente.
 - Firma de instaladores Windows con certificado de codigo.
 
-La version actual es adecuada para demo local, prototipo y uso en un solo equipo/dispositivo.
+La version actual ya incluye controles de frontend y SQL de seguridad. La proteccion fuerte depende de ejecutar las politicas RLS en Supabase.
