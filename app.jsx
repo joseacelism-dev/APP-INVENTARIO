@@ -31,7 +31,7 @@ const ROLE_PAGES = {
 };
 
 function normalizeRole(user) {
-  const raw = String(user?.role || user?.rol || '').toLowerCase();
+  const raw = [user?.rol, user?.role, user?.usuarioRol, user?.nombre].filter(Boolean).join(' ').toLowerCase();
   if (raw.includes('admin')) return 'gerente';
   if (raw.includes('gerente')) return 'gerente';
   if (raw.includes('produccion')) return 'produccion';

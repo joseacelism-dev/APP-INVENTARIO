@@ -6,7 +6,12 @@ function Usuarios({ data, setData, toast, currentUser }) {
   const [openNew, setOpenNew] = useStateUS(false);
   const [saving, setSaving] = useStateUS(false);
   const [form, setForm] = useStateUS({ nombre: '', email: '', password: '', rol: 'vendedor' });
-  const roleText = String(currentUser?.role || currentUser?.rol || currentUser?.usuarioRol || '').toLowerCase();
+  const roleText = [
+    currentUser?.role,
+    currentUser?.rol,
+    currentUser?.usuarioRol,
+    currentUser?.nombre
+  ].filter(Boolean).join(' ').toLowerCase();
   const isGerente = roleText.includes('gerente');
 
   const roles = [
