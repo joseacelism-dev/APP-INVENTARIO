@@ -11,8 +11,8 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg:        #dde4ee;
-    --bg-2:      #cfd9e8;
+    --bg:        #dbe9f6;
+    --bg-2:      #bfd5ea;
     --bg-card:   #ffffff;
     --line:      #c0ccdd;
     --line-2:    #a9b8cd;
@@ -20,9 +20,11 @@
     --ink-2:     #3a4654;
     --ink-3:     #6b7889;
     --ink-4:     #9aa6b6;
-    --accent:    oklch(0.52 0.13 250);   /* azul */
-    --accent-2:  oklch(0.58 0.13 250);
-    --accent-bg: oklch(0.95 0.03 250);
+    --accent:    #2F6FA8;   /* azul medio */
+    --accent-2:  #245F91;
+    --accent-bg: #E8F2FB;
+    --gold:      #C79A2F;
+    --gold-bg:   #FFF6DE;
     --good:      oklch(0.55 0.11 200);
     --good-bg:   oklch(0.95 0.04 210);
     --warn:      oklch(0.68 0.13 75);
@@ -58,14 +60,20 @@
     --shadow-lg: 0 6px 24px -8px rgba(0,0,0,.60), 0 2px 6px rgba(0,0,0,.30);
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.45; }
+  html, body { margin: 0; padding: 0; background:
+    radial-gradient(900px 520px at 12% 8%, rgba(47,111,168,.24), transparent 58%),
+    radial-gradient(760px 420px at 92% 12%, rgba(199,154,47,.20), transparent 54%),
+    linear-gradient(135deg, #f6fbff 0%, var(--bg) 45%, #bfd5ea 100%);
+    color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.45; }
   button { font-family: inherit; cursor: pointer; }
   input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
 
   /* App shell */
   .app { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
   .sidebar {
-    background: var(--bg-2);
+    background:
+      linear-gradient(180deg, rgba(47,111,168,.18), rgba(255,255,255,.08)),
+      var(--bg-2);
     border-right: 1px solid var(--line);
     padding: 18px 14px;
     display: flex; flex-direction: column; gap: 4px;
@@ -90,7 +98,7 @@
   .brand-name { font-weight: 700; letter-spacing: -0.01em; font-size: 15px; }
   .brand-sub { font-size: 11px; color: var(--ink-3); letter-spacing: 0.04em; text-transform: uppercase; }
 
-  .nav-label { font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; padding: 14px 8px 6px; }
+  .nav-label { font-size: 11px; color: #5f7896; text-transform: uppercase; letter-spacing: 0.08em; padding: 14px 8px 6px; }
   .nav-item {
     display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 10px;
     padding: 8px 10px; border-radius: var(--radius-sm);
@@ -146,8 +154,8 @@
   .btn:hover { border-color: var(--line-2); }
   .btn.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
   .btn.primary:hover { background: #000; }
-  .btn.accent { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .btn.accent:hover { background: var(--accent-2); border-color: var(--accent-2); }
+  .btn.accent { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border-color: var(--accent); box-shadow: 0 8px 18px rgba(47,111,168,.18); }
+  .btn.accent:hover { background: linear-gradient(135deg, #367dbc, var(--accent-2)); border-color: var(--accent-2); }
   .btn.ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
   .btn.ghost:hover { background: rgba(0,0,0,.04); }
   .btn.sm { padding: 4px 8px; font-size: 12px; }
@@ -196,7 +204,7 @@
   .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
   .kpi { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
   .kpi { position: relative; overflow: hidden; }
-  .kpi::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, var(--accent), oklch(0.70 0.12 165), oklch(0.78 0.12 70)); opacity: .85; }
+  .kpi::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: linear-gradient(90deg, var(--accent), #5D91C2, var(--gold)); opacity: .9; }
   .kpi .label { font-size: 12px; color: var(--ink-3); letter-spacing: 0.02em; text-transform: uppercase; }
   .kpi .val { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; margin-top: 6px; font-family: var(--mono); font-variant-numeric: tabular-nums;}
   .kpi .trend { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; margin-top: 8px; color: var(--ink-3);}
@@ -291,9 +299,10 @@
   /* Blueprint texture on content area */
   .content {
     background-image:
-      linear-gradient(rgba(120,110,90,.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(120,110,90,.035) 1px, transparent 1px);
-    background-size: 26px 26px;
+      linear-gradient(rgba(47,111,168,.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(47,111,168,.04) 1px, transparent 1px),
+      radial-gradient(circle at 18px 18px, rgba(199,154,47,.16) 1.4px, transparent 1.8px);
+    background-size: 34px 34px, 34px 34px, 136px 136px;
     background-position: -1px -1px;
   }
   html[data-theme="dark"] .content {
