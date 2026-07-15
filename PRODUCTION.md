@@ -6,7 +6,8 @@ PinturaStock es una app React estatica empaquetada para web, escritorio con Elec
 
 - Usa Supabase como almacenamiento remoto si `pinturastock_state` existe.
 - Soporta Supabase Auth con correo/contrasena.
-- Usa roles de aplicacion: `admin`, `gerente`, `produccion`, `vendedor`, `compras`.
+- Usa roles de aplicacion: `gerente`, `produccion`, `vendedor`, `compras`.
+- El gerente es el usuario maestro con acceso total.
 - No usa variables de entorno obligatorias.
 - Guarda una copia local en `localStorage`.
 - Sincroniza una copia remota JSON en Supabase usando token de usuario cuando Auth esta activo.
@@ -58,6 +59,7 @@ Antes de publicar con datos reales:
 - Ejecutar `supabase-security.sql`.
 - Crear usuarios en Supabase Auth.
 - Registrar cada usuario en `public.profiles`.
+- Desplegar la Edge Function `create-user` para que el gerente cree usuarios desde la app.
 - Verificar que RLS quede activo.
 - Crear backups antes de cada despliegue.
 - Revisar `audit_log` periodicamente.

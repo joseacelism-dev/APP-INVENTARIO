@@ -44,7 +44,6 @@ values ('UUID_DEL_USUARIO', 'vendedor@empresa.com', 'Nombre Vendedor', 'vendedor
 Roles disponibles:
 
 ```text
-admin
 gerente
 produccion
 vendedor
@@ -53,11 +52,32 @@ compras
 
 ## Permisos
 
-- `admin`: todo.
-- `gerente`: todo operativo.
+- `gerente`: usuario maestro con acceso total.
 - `vendedor`: productos, pedidos y movimientos.
 - `produccion`: materias, productos, pedidos, produccion, movimientos y reportes.
 - `compras`: materias, proveedores, pedidos, compras, movimientos y reportes.
+
+## Crear Usuarios Desde La App
+
+Para que el gerente pueda crear usuarios con correo y contrasena desde el modulo **Usuarios**, debes desplegar la Edge Function:
+
+```powershell
+supabase functions deploy create-user
+```
+
+La funcion esta en:
+
+```text
+supabase/functions/create-user/index.ts
+```
+
+La funcion usa `SUPABASE_SERVICE_ROLE_KEY` dentro de Supabase. Nunca pongas esa llave en `config.js`, GitHub, Android o Electron.
+
+Despues de desplegar:
+
+1. Entra a la app con el usuario gerente.
+2. Abre **Usuarios**.
+3. Crea usuarios con correo, contrasena inicial y rol.
 
 ## Estado Actual De La App
 

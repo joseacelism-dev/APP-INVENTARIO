@@ -110,6 +110,26 @@ async function signOut() {
   clearStoredSession();
 }
 
+async function createManagedUser(payload) {
+  if (!isSupabaseConfigured()) throw new Error('Supabase no esta configurado');
+  const session = getStoredSession();
+  if (!session?.access_token) throw new Error('Sesion no valida');
+  const { url, key } = getSupabaseConfig();
+  const endpoint = `${url}/functions/v1/create-user`;
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || `No se pudo crear usuario (${res.status})`);
+  return body;
+}
+
 function getCurrentUser() {
   const session = getStoredSession();
   return session ? profileFromSession(session) : null;
@@ -149,6 +169,7 @@ window.PS_SUPABASE = {
   signInWithPassword,
   signOut,
   getCurrentUser,
+  createManagedUser,
   loadRemoteState,
   saveRemoteState
 };

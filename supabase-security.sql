@@ -7,7 +7,9 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
   nombre text not null,
-  role text not null check (role in ('admin', 'gerente', 'produccion', 'vendedor', 'compras')),
+  display_name text,
+  rol text,
+  role text not null check (role in ('gerente', 'produccion', 'vendedor', 'compras')),
   activo boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -125,8 +127,8 @@ $$;
 
 drop policy if exists profiles_self_read on public.profiles;
 drop policy if exists profiles_admin_all on public.profiles;
-create policy profiles_self_read on public.profiles for select to authenticated using (id = auth.uid() or public.is_role(array['admin','gerente']));
-create policy profiles_admin_all on public.profiles for all to authenticated using (public.is_role(array['admin'])) with check (public.is_role(array['admin']));
+create policy profiles_self_read on public.profiles for select to authenticated using (id = auth.uid() or public.is_role(array['gerente']));
+create policy profiles_admin_all on public.profiles for all to authenticated using (public.is_role(array['gerente'])) with check (public.is_role(array['gerente']));
 
 drop policy if exists state_authenticated_read on public.pinturastock_state;
 drop policy if exists state_authenticated_write on public.pinturastock_state;
@@ -135,29 +137,29 @@ drop policy if exists "pinturastock_state_insert" on public.pinturastock_state;
 drop policy if exists "pinturastock_state_update" on public.pinturastock_state;
 create policy state_authenticated_read on public.pinturastock_state for select to authenticated using (id = 'default');
 create policy state_authenticated_write on public.pinturastock_state for all to authenticated
-using (id = 'default' and public.is_role(array['admin','gerente']))
-with check (id = 'default' and public.is_role(array['admin','gerente']));
+using (id = 'default' and public.is_role(array['gerente']))
+with check (id = 'default' and public.is_role(array['gerente']));
 
 create policy productos_read on public.productos for select to authenticated using (true);
-create policy productos_write on public.productos for all to authenticated using (public.is_role(array['admin','gerente','produccion'])) with check (public.is_role(array['admin','gerente','produccion']));
+create policy productos_write on public.productos for all to authenticated using (public.is_role(array['gerente','produccion'])) with check (public.is_role(array['gerente','produccion']));
 
 create policy mp_read on public.materias_primas for select to authenticated using (true);
-create policy mp_write on public.materias_primas for all to authenticated using (public.is_role(array['admin','gerente','produccion','compras'])) with check (public.is_role(array['admin','gerente','produccion','compras']));
+create policy mp_write on public.materias_primas for all to authenticated using (public.is_role(array['gerente','produccion','compras'])) with check (public.is_role(array['gerente','produccion','compras']));
 
-create policy pedidos_read on public.pedidos for select to authenticated using (public.is_role(array['admin','gerente','produccion','compras']) or vendedor_id = auth.uid());
-create policy pedidos_insert on public.pedidos for insert to authenticated with check (public.is_role(array['admin','gerente','vendedor']) and vendedor_id = auth.uid());
-create policy pedidos_update on public.pedidos for update to authenticated using (public.is_role(array['admin','gerente'])) with check (public.is_role(array['admin','gerente']));
+create policy pedidos_read on public.pedidos for select to authenticated using (public.is_role(array['gerente','produccion','compras']) or vendedor_id = auth.uid());
+create policy pedidos_insert on public.pedidos for insert to authenticated with check (public.is_role(array['gerente','vendedor']) and vendedor_id = auth.uid());
+create policy pedidos_update on public.pedidos for update to authenticated using (public.is_role(array['gerente'])) with check (public.is_role(array['gerente']));
 
-create policy op_read on public.ordenes_produccion for select to authenticated using (public.is_role(array['admin','gerente','produccion','compras']));
-create policy op_write on public.ordenes_produccion for all to authenticated using (public.is_role(array['admin','gerente','produccion'])) with check (public.is_role(array['admin','gerente','produccion']));
+create policy op_read on public.ordenes_produccion for select to authenticated using (public.is_role(array['gerente','produccion','compras']));
+create policy op_write on public.ordenes_produccion for all to authenticated using (public.is_role(array['gerente','produccion'])) with check (public.is_role(array['gerente','produccion']));
 
-create policy oc_read on public.ordenes_compra for select to authenticated using (public.is_role(array['admin','gerente','compras','produccion']));
-create policy oc_write on public.ordenes_compra for all to authenticated using (public.is_role(array['admin','gerente','compras'])) with check (public.is_role(array['admin','gerente','compras']));
+create policy oc_read on public.ordenes_compra for select to authenticated using (public.is_role(array['gerente','compras','produccion']));
+create policy oc_write on public.ordenes_compra for all to authenticated using (public.is_role(array['gerente','compras'])) with check (public.is_role(array['gerente','compras']));
 
 create policy movimientos_read on public.movimientos for select to authenticated using (true);
-create policy movimientos_write on public.movimientos for insert to authenticated with check (public.is_role(array['admin','gerente','produccion','compras']));
+create policy movimientos_write on public.movimientos for insert to authenticated with check (public.is_role(array['gerente','produccion','compras']));
 
-create policy audit_read on public.audit_log for select to authenticated using (public.is_role(array['admin','gerente']));
+create policy audit_read on public.audit_log for select to authenticated using (public.is_role(array['gerente']));
 create policy audit_insert on public.audit_log for insert to authenticated with check (auth.uid() = user_id);
 
 -- Crear usuarios en Authentication > Users y luego asignar perfil:

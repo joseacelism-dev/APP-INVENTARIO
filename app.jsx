@@ -24,7 +24,6 @@ function mergeSeedState(seed, incoming) {
 }
 
 const ROLE_PAGES = {
-  admin: '*',
   gerente: '*',
   produccion: ['dashboard', 'materias', 'productos', 'pedidos', 'produccion', 'movimientos', 'reportes'],
   vendedor: ['dashboard', 'productos', 'pedidos', 'movimientos'],
@@ -33,7 +32,7 @@ const ROLE_PAGES = {
 
 function normalizeRole(user) {
   const raw = String(user?.role || user?.rol || '').toLowerCase();
-  if (raw.includes('admin')) return 'admin';
+  if (raw.includes('admin')) return 'gerente';
   if (raw.includes('gerente')) return 'gerente';
   if (raw.includes('produccion')) return 'produccion';
   if (raw.includes('vendedor')) return 'vendedor';
@@ -111,8 +110,8 @@ function App() {
   }, [data]);
 
   const resetData = () => {
-    if (!['admin', 'gerente'].includes(normalizeRole(currentUser))) {
-      toast('Solo admin o gerente puede reiniciar datos', { icon: 'alert' });
+    if (normalizeRole(currentUser) !== 'gerente') {
+      toast('Solo el gerente puede reiniciar datos', { icon: 'alert' });
       return;
     }
     if (confirm('¿Borrar todos los datos y volver al estado inicial?')) {
@@ -397,7 +396,7 @@ function App() {
           {canViewPage(currentUser, page) && page === 'compras' && <Compras data={data} setData={setData} toast={toast} />}
           {canViewPage(currentUser, page) && page === 'movimientos' && <Movimientos data={data} setData={setData} toast={toast} />}
           {canViewPage(currentUser, page) && page === 'reportes' && <Reportes data={data} />}
-          {canViewPage(currentUser, page) && page === 'usuarios' && <Usuarios data={data} setData={setData} toast={toast} />}
+          {canViewPage(currentUser, page) && page === 'usuarios' && <Usuarios data={data} setData={setData} toast={toast} currentUser={currentUser} />}
           {canViewPage(currentUser, page) && page === 'auditoria' && <Auditoria data={data} />}
           {canViewPage(currentUser, page) && page === 'basedatos' && <BaseDatos />}
           {canViewPage(currentUser, page) && page === 'diseno' && <DisenoInterfaz goTo={goTo} />}
