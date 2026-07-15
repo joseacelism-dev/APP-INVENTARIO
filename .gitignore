@@ -11,3 +11,4 @@ android/.gradle/
 .env
 .env.local
 *.log
+supabase/.temp/
